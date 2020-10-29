@@ -19,6 +19,7 @@ const $ = new Env('京东物流');
 $.SESSION_KEY = 'id77_jdWulLiu';
 $.ISNEEDDELIVERY_KEY = 'id77_isNeedDelivery';
 $.isNeedDelivery = $.getdata($.ISNEEDDELIVERY_KEY) || 1;
+$.isMuteLog = false;
 
 let cookies = [];
 cookies.push($.getdata('CookieJD'));
