@@ -1,8 +1,9 @@
 /**
  * 京东多账号-物流派件提醒
  *
- * > 默认使用 NobyDa 脚本的京东 cookie
- *
+ * > 同时支持使用 NobyDa 与 domplin 脚本的京东 cookie
+ * > https://raw.githubusercontent.com/NobyDa/Script/master/JD-DailyBonus/JD_DailyBonus.js
+ * > https://raw.githubusercontent.com/dompling/Script/master/jd/JD_extra.js
  *
  * # Surge
  * Tasks: 京东物流派件提醒 = type=cron,cronexp=0 12 * * *,script-path=https://raw.githubusercontent.com/id77/QuantumultX/master/task/jdWuLiu.js,wake-system=true
@@ -19,9 +20,14 @@ $.SESSION_KEY = 'id77_jdWulLiu';
 $.ISNEEDDELIVERY_KEY = 'id77_isNeedDelivery';
 $.isNeedDelivery = $.getdata($.ISNEEDDELIVERY_KEY) || 1;
 
-const cookies = [];
+let cookies = [];
 cookies.push($.getdata('CookieJD'));
-cookies.push($.getdata('CookieJD2'));
+$.getdata('CookieJD2') && cookies.push($.getdata('CookieJD2'));
+
+const extraCookiesJD = JSON.parse($.getdata('CookiesJD') || '[]').map(
+  (item) => item.cookie
+);
+cookies = Array.from(new Set([...cookies, ...extraCookies]));
 
 const opts = {
   headers: {
