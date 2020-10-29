@@ -24,7 +24,7 @@ let cookies = [];
 cookies.push($.getdata('CookieJD'));
 $.getdata('CookieJD2') && cookies.push($.getdata('CookieJD2'));
 
-const extraCookiesJD = JSON.parse($.getdata('CookiesJD') || '[]').map(
+const extraCookies = JSON.parse($.getdata('CookiesJD') || '[]').map(
   (item) => item.cookie
 );
 cookies = Array.from(new Set([...cookies, ...extraCookies]));
