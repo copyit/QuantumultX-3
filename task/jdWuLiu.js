@@ -35,7 +35,6 @@ const opts = {
     Accept: `*/*`,
     Connection: `keep-alive`,
     Host: `wq.jd.com`,
-    Referer: `https://wqs.jd.com/order/orderlist_merge.shtml?sceneval=2&orderType=waitReceipt`,
     'Accept-Language': 'zh-cn',
     'Accept-Encoding': 'gzip, deflate, br',
     'User-Agent': `Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.1 Mobile/15E148 Safari/604.1`,
@@ -43,15 +42,13 @@ const opts = {
 };
 
 !(async () => {
-  let cookie, userName, orderList, order, wuLiuDetail;
+  let cookie, userInfo, orderList, order, wuLiuDetail;
 
   for (let index = 0; index < cookies.length; index++) {
     cookie = cookies[index];
-    userName = decodeURIComponent(
-      cookie.match(/pt_pin=(.+?);/) && cookie.match(/pt_pin=(.+?);/)[1]
-    );
     opts.headers.Cookie = cookie;
 
+    userInfo = await getUserInfo();
     orderList = await getOrderList();
 
     for (let k = 0; k < orderList.length; k++) {
@@ -59,20 +56,42 @@ const opts = {
 
       wuLiuDetail = await getWuLiu(order.orderId);
 
-      await showMsg(userName, wuLiuDetail);
+      await showMsg(userInfo, wuLiuDetail);
     }
   }
 })()
   .catch((e) => $.logErr(e))
   .finally(() => $.done());
 
+function getUserInfo() {
+  return new Promise((resolve) => {
+    opts.url =
+      'https://wq.jd.com/user_new/info/GetJDUserInfoUnion?orgFlag=JD_PinGou_New&callSource=mainorder&channel=4&isHomewhite=0&sceneval=2&sceneval=2&g_login_type=1g_ty=ls';
+    opts.headers.Referer = `https://home.m.jd.com/myJd/home.action`;
+
+    $.get(opts, (err, resp, data) => {
+      let userInfo;
+
+      try {
+        userInfo = JSON.parse(data).data.userInfo;
+      } catch (e) {
+        $.logErr(e, resp);
+      } finally {
+        resolve(userInfo);
+      }
+    });
+  });
+}
+
 function getOrderList() {
   return new Promise((resolve) => {
     opts.url =
       'https://wq.jd.com/bases/orderlist/list?order_type=2&start_page=1&page_size=10';
+    opts.headers.Referer = `https://wqs.jd.com/order/orderlist_merge.shtml?sceneval=2&orderType=waitReceipt`;
 
     $.get(opts, (err, resp, data) => {
       let orderList;
+
       try {
         orderList = JSON.parse(data).orderList;
       } catch (e) {
@@ -87,9 +106,11 @@ function getOrderList() {
 function getWuLiu(orderId) {
   return new Promise((resolve) => {
     opts.url = `https://wq.jd.com/bases/wuliudetail/dealloglist?deal_id=${orderId}`;
+    opts.headers.Referer = `https://wqs.jd.com/order/deal_wuliu.shtml?from=orderdetail&dealState=15&dealId=${orderId}&orderType=18&sceneval=2`;
 
     $.get(opts, (err, resp, data) => {
       let detail;
+
       try {
         detail = JSON.parse(data);
       } catch (e) {
@@ -101,7 +122,7 @@ function getWuLiu(orderId) {
   });
 }
 
-function showMsg(userName, wuLiuDetail) {
+function showMsg(userInfo, wuLiuDetail) {
   return new Promise((resolve) => {
     const {
       carrier,
@@ -114,7 +135,7 @@ function showMsg(userName, wuLiuDetail) {
     const dealLog =
       dealLogList.length > 0 ? dealLogList[index].wlStateDesc : '无';
 
-    $.name = `京东物流 账号：${userName}`;
+    $.name = `京东物流 账号：${userInfo.baseInfo.nickname}`;
     $.subt = ``;
     $.desc = `📦${carrier}：${carriageId}\n📱手机尾号：${recvMobile.slice(
       -4
