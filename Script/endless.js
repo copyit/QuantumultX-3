@@ -10,10 +10,10 @@
 
 [rewrite]
 # google 翻页 (senku)
-https?:\/\/www\.google\.com\/search.*(?<!start=\d{2}|\d{3})$ url script-response-body https://raw.githubusercontent.com/id77/QuantumultX/master/Script/endless.js
+https?:\/\/www\.google\.([a-z.]*)\/search.*(?<!start=\d{2}|\d{3})$ url script-response-body https://raw.githubusercontent.com/id77/QuantumultX/master/Script/endless.js
 
 [mitm]
-hostname = www.google.com
+hostname = www.google.*
 
  ********
  * 工具: tamperJS BY @elecV2
@@ -95,7 +95,7 @@ const css = \`
 \`;
 
 let pageNumber = 1;
-let prevScrollY = 0;
+let prevScrollY = 120;
 let nextPageLoading = false;
 
 function requestNextPage() {
