@@ -148,7 +148,10 @@ function showMsg(userInfo, wuLiuDetail) {
     console.log($.desc);
     console.log('====================================');
 
-    if ($.isNeedDelivery && dealLogList[index].groupType !== '0006') {
+    // 0006 派送
+    // 0008 可能代签收/快递柜/物流寄存点
+    const wuLiuStateCode = dealLogList[index].groupType
+    if ($.isNeedDelivery && (wuLiuStateCode !== '0006' && wuLiuStateCode !== '0008')) {
       return resolve();
     }
 
