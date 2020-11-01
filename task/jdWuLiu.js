@@ -19,7 +19,7 @@ const $ = new Env('京东物流');
 $.SESSION_KEY = 'id77_jdWulLiu';
 $.ISNEEDDELIVERY_KEY = 'id77_isNeedDelivery';
 $.isNeedDelivery = $.getdata($.ISNEEDDELIVERY_KEY) || 1;
-$.isMuteLog = false;
+$.isMuteLog = true;
 
 let cookies = [];
 cookies.push($.getdata('CookieJD'));
@@ -149,7 +149,7 @@ function showMsg(userInfo, wuLiuDetail) {
     console.log('====================================');
 
     if ($.isNeedDelivery && dealLogList[index].groupType !== '0006') {
-      return false;
+      return resolve();
     }
 
     $.msg($.name, $.subt, $.desc, {
