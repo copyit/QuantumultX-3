@@ -58,6 +58,12 @@ const filtersCol = filtersAll.concat(["#extrares", "#imagebox_bigimages"]);
 let   msg = "";
 
 const css = \`
+#botstuff {
+  height: 18px;
+}
+#botstuff > div{
+  display:none;
+}
 .page-number {
   position: relative;
   display: flex;
