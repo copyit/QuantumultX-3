@@ -100,7 +100,6 @@ function showMsg(originalGbit) {
 
     if ($.resData.includes('今日已签到')) {
       const todayGbit = $.resData.match(regGbit1) || $.resData.match(regGbit2);
-      console.log($.resData.match(regGbit1));
       const data = $.resData.match(/你已经连续签到 \d* 天/);
       $.desc =
         (data.length > 0 ? data[0] + '，' : '') +
