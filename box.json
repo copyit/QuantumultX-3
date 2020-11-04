@@ -8,7 +8,11 @@
     {
       "id": "jdWulLiu",
       "name": "京东物流",
-      "keys": ["id77_isNeedDelivery"],
+      "keys": ["id77_isNeedDelivery", "id77_jdWulLiu_pageMax"],
+      "descs_html": [
+        "<p>查询条目只能设置「整十」的数字。</p>",
+        "<p>10条/页，要查多少页就填写相应条目</p>"
+      ],
       "settings": [
         {
           "id": "id77_isNeedDelivery",
@@ -17,6 +21,14 @@
           "type": "number",
           "placeholder": "1",
           "desc": "默认派送状态才发出通知，需要设置1，不需要设置0"
+        },
+        {
+          "id": "id77_jdWulLiu_pageMax",
+          "name": "查询条目",
+          "val": "",
+          "type": "number",
+          "placeholder": "10",
+          "desc": "整十数字。比如：10，20，30..."
         }
       ],
       "script": "https://raw.githubusercontent.com/id77/QuantumultX/master/task/jdWuLiu.js",

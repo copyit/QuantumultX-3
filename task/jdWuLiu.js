@@ -17,9 +17,14 @@
  */
 const $ = new Env('京东物流');
 $.SESSION_KEY = 'id77_jdWulLiu';
-$.ISNEEDDELIVERY_KEY = 'id77_isNeedDelivery';
-$.isNeedDelivery = $.getdata($.ISNEEDDELIVERY_KEY) || 1;
+$.PAGE_MAX_KEY = 'id77_jdWulLiu_pageMax';
+$.IS_NEED_DELIVERY_KEY = 'id77_isNeedDelivery';
+$.CARRIAGE_ID_ARR_KEY = 'id77_carriageIdArr';
+$.pageMax = $.getdata($.PAGE_MAX_KEY) || 10;
+$.isNeedDelivery = $.getdata($.IS_NEED_DELIVERY_KEY) || 1;
+$.carriageIdArr = JSON.parse($.getdata($.CARRIAGE_ID_ARR_KEY) || '[]');
 $.isMuteLog = true;
+$.page = 1;
 
 let cookies = [];
 cookies.push($.getdata('CookieJD'));
@@ -42,21 +47,30 @@ const opts = {
 };
 
 !(async () => {
-  let cookie, userInfo, orderList, order, wuLiuDetail;
+  let cookie,
+    userInfo,
+    orderList = [],
+    order,
+    wuLiuDetail;
 
   for (let index = 0; index < cookies.length; index++) {
     cookie = cookies[index];
     opts.headers.Cookie = cookie;
 
     userInfo = await getUserInfo();
-    orderList = await getOrderList();
+
+    for (let p = 1; p <= $.pageMax / 10; p++) {
+      $.page = p;
+
+      orderList = await getOrderList();
+    }
 
     for (let k = 0; k < orderList.length; k++) {
       order = orderList[k];
 
       wuLiuDetail = await getWuLiu(order.orderId);
 
-      await showMsg(userInfo, wuLiuDetail);
+      await showMsg(userInfo, wuLiuDetail, k);
     }
   }
 })()
@@ -85,8 +99,7 @@ function getUserInfo() {
 
 function getOrderList() {
   return new Promise((resolve) => {
-    opts.url =
-      'https://wq.jd.com/bases/orderlist/list?order_type=2&start_page=1&page_size=10';
+    opts.url = `https://wq.jd.com/bases/orderlist/list?order_type=0&start_page=${$.page}&page_size=10`;
     opts.headers.Referer = `https://wqs.jd.com/order/orderlist_merge.shtml?sceneval=2&orderType=waitReceipt`;
 
     $.get(opts, (err, resp, data) => {
@@ -122,7 +135,7 @@ function getWuLiu(orderId) {
   });
 }
 
-function showMsg(userInfo, wuLiuDetail) {
+function showMsg(userInfo, wuLiuDetail, k) {
   return new Promise((resolve) => {
     const {
       carrier,
@@ -131,28 +144,65 @@ function showMsg(userInfo, wuLiuDetail) {
       orderWareList,
       dealLogList,
     } = wuLiuDetail;
+    // 部分订单属于敏感信息，收货之后，物流信息不会返回
+    // 比如购药订单
+    if (!dealLogList) {
+      return resolve();
+    }
     const index = dealLogList.length - 1;
     const dealLog =
       dealLogList.length > 0 ? dealLogList[index].wlStateDesc : '无';
+    // 0006 派送
+    // 0008 可能代签收/快递柜/物流寄存点
+    const wuLiuStateCode = dealLogList[index].groupType;
 
     $.name = `京东物流 账号：${userInfo.baseInfo.nickname}`;
     $.subt = ``;
     $.desc = `📦${carrier}：${carriageId}\n📱手机尾号：${recvMobile.slice(
       -4
     )}\n🚚最新物流：${dealLog}`;
+    $.state = `🚥当前状态：${wuLiuStateCode === '0008' ? '🟢签收' : '🟡派送'}`;
     $.imgPath = `https://img30.360buyimg.com/jdwlcms/${orderWareList[0].itemImgPath}`;
 
-    console.log('====================================');
-    console.log($.name);
+    k === 0 && console.log('====================================');
+    k === 0 && console.log(`🙆🏻‍♂️账号：${userInfo.baseInfo.nickname}`);
     console.log($.subt);
     console.log($.desc);
-    console.log('====================================');
+    console.log($.state);
+    console.log('------------------------------------');
 
-    // 0006 派送
-    // 0008 可能代签收/快递柜/物流寄存点
-    const wuLiuStateCode = dealLogList[index].groupType
-    if ($.isNeedDelivery && (wuLiuStateCode !== '0006' && wuLiuStateCode !== '0008')) {
+    const _30DayBefore = new Date().getTime() - 30 * 24 * 60 * 60 * 1000;
+    const { createTime } = dealLogList[index];
+
+    // 清空派送超过30天的记录
+    if (_30DayBefore > new Date(createTime).getTime()) {
+      $.setdata(
+        JSON.stringify([$.carriageIdArr.filter((item) => item !== carriageId)]),
+        $.CARRIAGE_ID_ARR_KEY
+      );
+
       return resolve();
+    }
+
+    // 已通知过的快递，跳过通知
+    if ($.carriageIdArr.includes(carriageId)) {
+      return resolve();
+    }
+
+    if (
+      $.isNeedDelivery &&
+      wuLiuStateCode !== '0006' &&
+      wuLiuStateCode !== '0008'
+    ) {
+      return resolve();
+    }
+
+    console.log(`=========${carriageId}========`);
+    // 缓存 0008 状态，只通知一次
+    if (wuLiuStateCode === '0008') {
+      $.carriageIdArr.push(carriageId);
+
+      $.setdata(JSON.stringify($.carriageIdArr), $.CARRIAGE_ID_ARR_KEY);
     }
 
     $.msg($.name, $.subt, $.desc, {
