@@ -1,5 +1,7 @@
 /**
  * 京东多账号-物流派件提醒
+ * 派送状态会跑一次，通知一次
+ *
  *
  * > 同时支持使用 NobyDa 与 domplin 脚本的京东 cookie
  * > https://raw.githubusercontent.com/NobyDa/Script/master/JD-DailyBonus/JD_DailyBonus.js
@@ -18,10 +20,8 @@
 const $ = new Env('京东物流');
 $.SESSION_KEY = 'id77_jdWulLiu';
 $.PAGE_MAX_KEY = 'id77_jdWulLiu_pageMax';
-$.IS_NEED_DELIVERY_KEY = 'id77_isNeedDelivery';
 $.CARRIAGE_ID_ARR_KEY = 'id77_carriageIdArr';
 $.pageMax = $.getdata($.PAGE_MAX_KEY) || 10;
-$.isNeedDelivery = $.getdata($.IS_NEED_DELIVERY_KEY) || 1;
 $.carriageIdArr = JSON.parse($.getdata($.CARRIAGE_ID_ARR_KEY) || '[]');
 $.isMuteLog = true;
 $.page = 1;
@@ -63,14 +63,14 @@ const opts = {
       $.page = p;
 
       orderList = await getOrderList();
-    }
 
-    for (let k = 0; k < orderList.length; k++) {
-      const { orderId } = orderList[k];
+      for (let k = 0; k < orderList.length; k++) {
+        const { orderId } = orderList[k];
 
-      wuLiuDetail = await getWuLiu(orderId);
+        wuLiuDetail = await getWuLiu(orderId);
 
-      await showMsg(userInfo, wuLiuDetail, k, orderId);
+        await showMsg(userInfo, wuLiuDetail, k, orderId);
+      }
     }
   }
 })()
@@ -202,11 +202,7 @@ function showMsg(userInfo, wuLiuDetail, k, orderId) {
       return resolve();
     }
 
-    if (
-      $.isNeedDelivery &&
-      wuLiuStateCode !== '0006' &&
-      wuLiuStateCode !== '0008'
-    ) {
+    if (wuLiuStateCode !== '0006' && wuLiuStateCode !== '0008') {
       return resolve();
     }
 
