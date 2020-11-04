@@ -66,11 +66,11 @@ const opts = {
     }
 
     for (let k = 0; k < orderList.length; k++) {
-      order = orderList[k];
+      const { orderId } = orderList[k];
 
-      wuLiuDetail = await getWuLiu(order.orderId);
+      wuLiuDetail = await getWuLiu(orderId);
 
-      await showMsg(userInfo, wuLiuDetail, k);
+      await showMsg(userInfo, wuLiuDetail, k, orderId);
     }
   }
 })()
@@ -135,7 +135,7 @@ function getWuLiu(orderId) {
   });
 }
 
-function showMsg(userInfo, wuLiuDetail, k) {
+function showMsg(userInfo, wuLiuDetail, k, orderId) {
   return new Promise((resolve) => {
     const {
       carrier,
@@ -168,6 +168,12 @@ function showMsg(userInfo, wuLiuDetail, k) {
         ? '🟡派送'
         : '🔴运输'
     }`;
+    $.info = `📗商品数目：${
+      orderWareList.length
+    }\n📘订单编号：${orderId}\n📕包含商品：${orderWareList[0].itemName.slice(
+      0,
+      20
+    )}\n`;
     $.imgPath = `https://img30.360buyimg.com/jdwlcms/${orderWareList[0].itemImgPath}`;
 
     k === 0 && console.log('====================================');
@@ -175,6 +181,7 @@ function showMsg(userInfo, wuLiuDetail, k) {
     console.log($.subt);
     console.log($.desc);
     console.log($.state);
+    console.log($.info);
     console.log('------------------------------------');
 
     const _30DayBefore = new Date().getTime() - 30 * 24 * 60 * 60 * 1000;
@@ -203,7 +210,6 @@ function showMsg(userInfo, wuLiuDetail, k) {
       return resolve();
     }
 
-    console.log(`=========${carriageId}========`);
     // 缓存 0008 状态，只通知一次
     if (wuLiuStateCode === '0008') {
       $.carriageIdArr.push(carriageId);
