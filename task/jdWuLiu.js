@@ -161,7 +161,13 @@ function showMsg(userInfo, wuLiuDetail, k) {
     $.desc = `📦${carrier}：${carriageId}\n📱手机尾号：${recvMobile.slice(
       -4
     )}\n🚚最新物流：${dealLog}`;
-    $.state = `🚥当前状态：${wuLiuStateCode === '0008' ? '🟢签收' : '🟡派送'}`;
+    $.state = `🚥当前状态：${
+      wuLiuStateCode === '0008'
+        ? '🟢签收'
+        : wuLiuStateCode === '0006'
+        ? '🟡派送'
+        : '🔴运输'
+    }`;
     $.imgPath = `https://img30.360buyimg.com/jdwlcms/${orderWareList[0].itemImgPath}`;
 
     k === 0 && console.log('====================================');
