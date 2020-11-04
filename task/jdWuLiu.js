@@ -1,6 +1,7 @@
 /**
  * 京东多账号-物流派件提醒
  * 派送状态会跑一次，通知一次
+ * 超过30天的订单，不通知不显示
  *
  *
  * > 同时支持使用 NobyDa 与 domplin 脚本的京东 cookie
@@ -47,30 +48,27 @@ const opts = {
 };
 
 !(async () => {
-  let cookie,
-    userInfo,
-    orderList = [],
-    order,
-    wuLiuDetail;
+  let cookie, userInfo, orderList, order, wuLiuDetail;
 
   for (let index = 0; index < cookies.length; index++) {
     cookie = cookies[index];
     opts.headers.Cookie = cookie;
 
     userInfo = await getUserInfo();
+    orderList = [];
 
     for (let p = 1; p <= $.pageMax / 10; p++) {
       $.page = p;
 
-      orderList = await getOrderList();
+      orderList = [...orderList, ...(await getOrderList())];
+    }
 
-      for (let k = 0; k < orderList.length; k++) {
-        const { orderId } = orderList[k];
+    for (let k = 0; k < orderList.length; k++) {
+      const { orderId } = orderList[k];
 
-        wuLiuDetail = await getWuLiu(orderId);
+      wuLiuDetail = await getWuLiu(orderId);
 
-        await showMsg(userInfo, wuLiuDetail, k, orderId);
-      }
+      await showMsg(userInfo, wuLiuDetail, k, orderId);
     }
   }
 })()
@@ -156,6 +154,19 @@ function showMsg(userInfo, wuLiuDetail, k, orderId) {
     // 0008 可能代签收/快递柜/物流寄存点
     const wuLiuStateCode = dealLogList[index].groupType;
 
+    const _30DayBefore = new Date().getTime() - 30 * 24 * 60 * 60 * 1000;
+    const { createTime } = dealLogList[index];
+
+    // 清空派送超过30天的记录
+    if (_30DayBefore > new Date(createTime.replace(/\-/g, '/')).getTime()) {
+      $.setdata(
+        JSON.stringify([$.carriageIdArr.filter((item) => item !== carriageId)]),
+        $.CARRIAGE_ID_ARR_KEY
+      );
+
+      return resolve();
+    }
+
     $.name = `京东物流 账号：${userInfo.baseInfo.nickname}`;
     $.subt = ``;
     $.desc = `📦${carrier}：${carriageId}\n📱手机尾号：${recvMobile.slice(
@@ -183,19 +194,6 @@ function showMsg(userInfo, wuLiuDetail, k, orderId) {
     console.log($.state);
     console.log($.info);
     console.log('------------------------------------');
-
-    const _30DayBefore = new Date().getTime() - 30 * 24 * 60 * 60 * 1000;
-    const { createTime } = dealLogList[index];
-
-    // 清空派送超过30天的记录
-    if (_30DayBefore > new Date(createTime).getTime()) {
-      $.setdata(
-        JSON.stringify([$.carriageIdArr.filter((item) => item !== carriageId)]),
-        $.CARRIAGE_ID_ARR_KEY
-      );
-
-      return resolve();
-    }
 
     // 已通知过的快递，跳过通知
     if ($.carriageIdArr.includes(carriageId)) {
