@@ -160,7 +160,7 @@ function showMsg(userInfo, wuLiuDetail, k, orderId) {
     // 清空派送超过30天的记录
     if (_30DayBefore > new Date(createTime.replace(/\-/g, '/')).getTime()) {
       $.setdata(
-        JSON.stringify([$.carriageIdArr.filter((item) => item !== carriageId)]),
+        JSON.stringify($.carriageIdArr.filter((item) => item !== carriageId)),
         $.CARRIAGE_ID_ARR_KEY
       );
 
