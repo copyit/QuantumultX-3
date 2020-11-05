@@ -27,6 +27,9 @@ $.carriageIdArr = JSON.parse($.getdata($.CARRIAGE_ID_ARR_KEY) || '[]');
 $.isMuteLog = true;
 $.page = 1;
 
+// 清除错误数据 
+$.setdata(JSON.stringify('[]'), $.CARRIAGE_ID_ARR_KEY);
+
 let cookies = [];
 cookies.push($.getdata('CookieJD'));
 $.getdata('CookieJD2') && cookies.push($.getdata('CookieJD2'));
