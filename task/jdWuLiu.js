@@ -28,7 +28,9 @@ $.isMuteLog = true;
 $.page = 1;
 
 // 清除错误数据 
-$.setdata(JSON.stringify('[]'), $.CARRIAGE_ID_ARR_KEY);
+$.carriageIdArr[0] &&
+Array.isArray($.carriageIdArr[0]) &&
+$.carriageIdArr.splice(0,1);
 
 let cookies = [];
 cookies.push($.getdata('CookieJD'));
