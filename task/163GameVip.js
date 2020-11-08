@@ -57,8 +57,9 @@ function showMsg() {
     } else if (code === 5020007) $.subt += '重复';
     else $.subt += '失败，' + msg;
     $.msg($.name, $.subt, $.desc, {
-      'open-url': 'wxd374db136c4fc68e://',
-      'https://raw.githubusercontent.com/id77/QuantumultX/master/icon/163GameVip.png',
+      openUrl: 'wxd374db136c4fc68e://',
+      mediaUrl:
+        'https://raw.githubusercontent.com/id77/QuantumultX/master/icon/163GameVip.png',
     });
     resolve();
   });
