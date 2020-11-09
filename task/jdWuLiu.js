@@ -69,11 +69,13 @@ const opts = {
     }
 
     for (let k = 0; k < orderList.length; k++) {
-      const { orderId } = orderList[k];
+      const { orderId, stateInfo: { stateName } } = orderList[k];
+      
+      if(stateName !== '已取消') {
+        wuLiuDetail = await getWuLiu(orderId);
 
-      wuLiuDetail = await getWuLiu(orderId);
-
-      await showMsg(userInfo, wuLiuDetail, k, orderId);
+        await showMsg(userInfo, wuLiuDetail, k, orderId);
+      }
     }
   }
 })()
